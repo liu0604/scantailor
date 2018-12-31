@@ -21,8 +21,9 @@ SET(
 )
 
 SOURCE_GROUP(Sources FILES ${sources})
-QT4_AUTOMOC(${sources})
+#QT4_AUTOMOC(${sources})
 
 ADD_LIBRARY(zones STATIC ${sources})
+target_link_libraries(zones Qt5::Widgets Qt5::Xml)
 
 TRANSLATION_SOURCES(scantailor ${sources})

@@ -17,17 +17,24 @@
 */
 
 #include "ErrorWidget.h"
-#include "ErrorWidget.h.moc"
+#include "ui_ErrorWidget.h"
+//#include "ErrorWidget.moc"
 #include <QStyle>
 #include <QIcon>
 
-ErrorWidget::ErrorWidget(QString const& text, Qt::TextFormat fmt)
+ErrorWidget::ErrorWidget(QString const& text, Qt::TextFormat fmt):
+  ui(new Ui::ErrorWidget)
 {
-	setupUi(this);
-	textLabel->setTextFormat(fmt);
-	textLabel->setText(text);
+    ui->setupUi(this);
+    ui->textLabel->setTextFormat(fmt);
+    ui->textLabel->setText(text);
 	QIcon icon(QApplication::style()->standardIcon(QStyle::SP_MessageBoxWarning));
-	imageLabel->setPixmap(icon.pixmap(48, 48));
+    ui->imageLabel->setPixmap(icon.pixmap(48, 48));
 
-	connect(textLabel, SIGNAL(linkActivated(QString const&)), SLOT(linkActivated(QString const&)));
+    connect(ui->textLabel, SIGNAL(linkActivated(QString const&)), SLOT(linkActivated(QString const&)));
+}
+
+ErrorWidget::~ErrorWidget()
+{
+  delete ui;
 }

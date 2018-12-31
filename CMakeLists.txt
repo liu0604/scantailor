@@ -9,6 +9,8 @@ IF(COMMAND cmake_policy)
 	cmake_policy(SET CMP0003 NEW)
 ENDIF(COMMAND cmake_policy)
 
+SET(CMAKE_CXX_STANDARD 11)
+
 SET(
 	CMAKE_USER_MAKE_RULES_OVERRIDE
 	"${CMAKE_SOURCE_DIR}/cmake/default_cflags.cmake"
@@ -23,6 +25,9 @@ PROJECT("Scan Tailor")
 # This forces Visual Studio 2008 SP1 to actually link to the versions of the
 # libraries it ships with!  It's harmless on other platforms.
 ADD_DEFINITIONS(-D_BIND_TO_CURRENT_VCLIBS_VERSION=1)
+
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+set(CMAKE_AUTOUIC_SEARCH_PATHS ui)
 
 IF(DEBUG_CLI)
 	ADD_DEFINITIONS(-DDEBUG_CLI)
@@ -119,14 +124,18 @@ IF(WIN32)
 	ENDIF()
 ENDIF()
 
-INCLUDE(FindQt4)
-IF(NOT QT4_FOUND)
-	MESSAGE(
-		FATAL_ERROR "Qt4 could not be found. "
-		"If it's installed in a non-standard location, specify the path to qmake in QT_QMAKE_EXECUTABLE. "
-		"You can do it in interactive mode (ccmake instead of cmake) or using -DVAR=VAL syntax."
-	)
-ENDIF(NOT QT4_FOUND)
+#INCLUDE(FindQt4)
+#IF(NOT QT4_FOUND)
+#	MESSAGE(
+#		FATAL_ERROR "Qt4 could not be found. "
+#		"If it's installed in a non-standard location, specify the path to qmake in QT_QMAKE_EXECUTABLE. "
+#		"You can do it in interactive mode (ccmake instead of cmake) or using -DVAR=VAL syntax."
+#	)
+#ENDIF(NOT QT4_FOUND)
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTOUIC ON)
+set(CMAKE_AUTORCC ON)
+find_package(Qt5 COMPONENTS Core Widgets Gui Xml PrintSupport REQUIRED)
 GET_FILENAME_COMPONENT(QT_BIN_DIR "${QT_QMAKE_EXECUTABLE}" PATH)
 
 
@@ -416,8 +425,8 @@ FOREACH(ui_file ${common_ui_files})
 ENDFOREACH()
 
 SOURCE_GROUP("UI Files" FILES ${common_ui_files} ${gui_only_ui_files})
-QT4_WRAP_UI(common_ui_sources ${common_ui_files})
-QT4_WRAP_UI(gui_only_ui_sources ${gui_only_ui_files})
+#QT5_WRAP_UI(common_ui_sources ${common_ui_files})
+#QT5_WRAP_UI(gui_only_ui_sources ${gui_only_ui_files})
 SET_SOURCE_FILES_PROPERTIES(${common_ui_sources} ${gui_only_ui_files} PROPERTIES GENERATED TRUE)
 ADD_SUBDIRECTORY(ui)
 INCLUDE_DIRECTORIES("${CMAKE_CURRENT_BINARY_DIR}") # for ui files
@@ -431,8 +440,8 @@ ADD_SUBDIRECTORY(filters/select_content)
 ADD_SUBDIRECTORY(filters/page_layout)
 ADD_SUBDIRECTORY(filters/output)
 
-SET(resource_sources)
-QT4_ADD_RESOURCES(resource_sources resources/resources.qrc)
+SET(resource_sources resources/resources.qrc)
+#QT5_ADD_RESOURCES(resource_sources resources/resources.qrc)
 SOURCE_GROUP("Generated" FILES ${common_ui_sources} ${gui_only_ui_sources} ${resource_sources})
 SOURCE_GROUP("Resources" FILES resources/resources.qrc resources/icons/COPYING)
 IF(WIN32)
@@ -441,6 +450,7 @@ ENDIF()
 
 SET(
 	common_sources
+        SkinnedButton.cpp SkinnedButton.h
 	BackgroundExecutor.cpp BackgroundExecutor.h
 	OpenGLSupport.cpp OpenGLSupport.h
 	PixmapRenderer.cpp PixmapRenderer.h
@@ -534,8 +544,7 @@ SET(
 
 SET(
 	gui_only_sources
-	Application.cpp Application.h
-	SkinnedButton.cpp SkinnedButton.h
+        Application.cpp Application.h
 	RelinkablePathVisualization.cpp RelinkablePathVisualization.h
 	RelinkingModel.cpp RelinkingModel.h
 	RelinkingSortingModel.cpp RelinkingSortingModel.h
@@ -562,7 +571,7 @@ SET(
 )
 
 SOURCE_GROUP("Sources" FILES ${common_sources} ${gui_only_sources} ${cli_only_sources})
-QT4_AUTOMOC(${common_sources} ${gui_only_sources} ${cli_only_sources})
+#QT5_AUTOMOC(${common_sources} ${gui_only_sources} ${cli_only_sources})
 
 SOURCE_GROUP("Special Headers" FILES version.h config.h.in)
 
@@ -601,10 +610,11 @@ IF(WIN32)
 ENDIF(WIN32)
 
 ADD_LIBRARY(stcore STATIC ${common_sources} ${common_ui_sources})
+target_link_libraries(stcore Qt5::Core Qt5::Xml Qt5::PrintSupport Qt5::Widgets)
 
 ADD_EXECUTABLE(
 	scantailor WIN32 ${gui_only_sources} ${common_ui_sources} ${gui_only_ui_sources}
-	${resource_sources} ${win32_resource_file} resources/icons/COPYING
+        ${resource_sources} ${win32_resource_file} resources/icons/COPYING
 )
 
 ADD_EXECUTABLE(scantailor-cli ${cli_only_sources} ${common_ui_sources})
@@ -616,13 +626,13 @@ TARGET_LINK_LIBRARIES(
 	scantailor
 	fix_orientation page_split deskew select_content page_layout output stcore
 	dewarping zones interaction imageproc math foundation ${QJPEG_LIBRARIES}
-	${QT_QTGUI_LIBRARY} ${QT_QTXML_LIBRARY} ${QT_QTCORE_LIBRARY} ${EXTRA_LIBS}
+        ${QT_QTGUI_LIBRARY} ${QT_QTXML_LIBRARY} ${QT_QTCORE_LIBRARY} ${EXTRA_LIBS} Qt5::Widgets Qt5::Xml
 )
 TARGET_LINK_LIBRARIES(
 	scantailor-cli
 	fix_orientation page_split deskew select_content page_layout output
 	stcore dewarping zones interaction imageproc math foundation ${QJPEG_LIBRARIES}
-	${QT_QTGUI_LIBRARY} ${QT_QTXML_LIBRARY} ${QT_QTCORE_LIBRARY} ${EXTRA_LIBS}
+        ${QT_QTGUI_LIBRARY} ${QT_QTXML_LIBRARY} ${QT_QTCORE_LIBRARY} ${EXTRA_LIBS} Qt5::Widgets Qt5::Xml
 )
 INSTALL(TARGETS scantailor scantailor-cli RUNTIME DESTINATION bin)
 
@@ -680,7 +690,7 @@ FOREACH(ts_file ${ts_files})
 		LIST(APPEND FILTERED_TRANSLATION_FILES "${ts_file}")
 	ENDIF("${ts_file}" MATCHES ".*untranslated.ts")
 ENDFOREACH(ts_file)
-QT4_ADD_TRANSLATION(QM_FILES ${FILTERED_TRANSLATION_FILES})
+#QT5_ADD_TRANSLATION(QM_FILES ${FILTERED_TRANSLATION_FILES})
 ADD_CUSTOM_TARGET(compile_translations ALL DEPENDS ${QM_FILES})
 
 INSTALL(FILES ${QM_FILES} DESTINATION "${TRANSLATIONS_DIR_REL}/")

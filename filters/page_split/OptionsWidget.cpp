@@ -17,7 +17,7 @@
 */
 
 #include "OptionsWidget.h"
-#include "OptionsWidget.h.moc"
+//#include "OptionsWidget.moc"
 #include "Filter.h"
 #include "SplitModeDialog.h"
 #include "Settings.h"
@@ -30,6 +30,7 @@
 #ifndef Q_MOC_RUN
 #include <boost/foreach.hpp>
 #endif
+#include <QButtonGroup>
 #include <assert.h>
 
 namespace page_split
