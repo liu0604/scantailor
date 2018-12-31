@@ -1,8 +1,7 @@
-IF(WIN32)
-	CMAKE_MINIMUM_REQUIRED(VERSION 2.8.4)
-ELSE()
-	CMAKE_MINIMUM_REQUIRED(VERSION 2.6.0)
-ENDIF()
+CMAKE_MINIMUM_REQUIRED(VERSION 3.9.6)
+# Since CMake 3.9.6, "CMAKE_AUTOUIC_SEARCH_PATHS" was added, which was used
+# to indicate *.ui files were located in a seperate direcotry besides the
+# source codes.
 
 IF(COMMAND cmake_policy)
 	# Suppress warnings.
